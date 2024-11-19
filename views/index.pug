@@ -4,11 +4,12 @@ block content
   h1= title
   p Welcome to #{title}
 
+  h2 Query
   if !rows
     p No result
   else if rows.length > 0
     table
-      caption #{query}
+      caption Results of query: #{query}
       thead
         tr
           each key in Object.keys(rows[0])
@@ -18,3 +19,16 @@ block content
           tr
             each val in Object.values(row)
               td= val
+
+  h2 Parameterized query
+  form(method="post", action="/")
+    label(for="FacSSN") Faculty ID number:
+    if FacSSN && FacSSN.length > 0
+      input(type="text", id="FacSSN", name="FacSSN", value="#{FacSSN}")
+    else 
+      input(type="text", id="FacSSN", name="FacSSN")
+    input(type="submit")
+  if !FacSSN || FacSSN.length == 0
+    p No faculty member selected
+  else 
+    p Faculty ID is "#{FacSSN}"
