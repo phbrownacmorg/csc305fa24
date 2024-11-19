@@ -5,8 +5,18 @@
  */
 
 var app = require('../app');
+var path = require('path');
 var debug = require('debug')('project:server');
 var http = require('http');
+
+/**
+ * Database
+ */
+
+const dbconnect = require('../public/javascript/dbconnect');
+let dbname = path.resolve(__dirname, '..', 'public', 'univdb.sqli');
+console.log(dbname);
+app.locals.db = dbconnect.dbopen(dbname);
 
 /**
  * Get port from environment and store in Express.
@@ -88,3 +98,36 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
+
+/**
+ * Function for graceful (as much as possible!) shutdown.
+ */
+function gracefulShutdown(signal) {
+  if (signal) {
+      console.log(`Received ${signal}, shutting down (somewhat) gracefully.`);
+  }
+  else {
+      console.log('Shutting down, no signal.');
+  }
+
+  server.close(() => {
+      console.log('Http server closed.');
+      if (app.locals.db) {
+          dbconnect.dbclose(app.locals.db, () => { 
+              console.log('Exiting after closing database.');
+              process.exit(0); 
+          });
+      }
+      else {
+          console.log('Exiting, no database to close.')
+          process.exit(0);
+      }
+  });
+}
+
+/**
+* Attach gracefulShutdown() to the two most common ways of shutting down.
+*/
+process.on('SIGTERM', gracefulShutdown);
+
+process.on('SIGINT', gracefulShutdown);

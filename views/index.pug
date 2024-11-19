@@ -3,3 +3,18 @@ extends layout
 block content
   h1= title
   p Welcome to #{title}
+
+  if !rows
+    p No result
+  else if rows.length > 0
+    table
+      caption #{query}
+      thead
+        tr
+          each key in Object.keys(rows[0])
+            th= key
+      tbody 
+        each row in rows
+          tr
+            each val in Object.values(row)
+              td= val

@@ -9,17 +9,6 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
-// Database
-var sqlite3 = require('sqlite3');
-let dbname = 'public/univdb.sqli';
-app.locals.db = new sqlite3.Database('public/univdb.sqli')
-if (!app.locals.db) {
-  console.log('Could not connect to ' + dbname)
-}
-else {
-  console.log('Connected to ' + dbname);
-}
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
