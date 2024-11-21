@@ -21,7 +21,7 @@ block content
               td= val
 
   h2 Parameterized query
-  form(method="post", action="/")
+  form#FacSSN_form(method="post", action="/")
     label(for="FacSSN") Faculty ID number:
     if FacSSN && FacSSN.length > 0
       input#FacSSN(type="text", name="FacSSN", pattern!='[0-9]{3}-?[0-9]{2}-?[0-9]{4}', required, value=`${FacSSN}` )
@@ -47,3 +47,62 @@ block content
             tr
               each val in Object.values(course)
                 td= val
+
+  h2 INSERT query 
+  form#insert_form(method="post", action="/")
+  h3 New faculty member
+  label(for="FacID") ID number: 
+  input#FacID(type="text",name="FacID",pattern!='[0-9]{3}-?[0-9]{2}-?[0-9]{4}',required)
+  span(class="flag")
+  br
+  label(for="FacFirstName") First Name: 
+  input#FacFirstName(type="text",name="FacFirstName",required)
+  span(class="flag")
+  br
+  label(for="FacLastName") Last Name: 
+  input#FacLastName(type="text",name="FacLastName",required)
+  span(class="flag")
+  br
+  label(for="FacCity") City: 
+  input#FacCity(type="text",name="FacCity",required)
+  span(class="flag")
+  br
+  label(for="FacState") State: 
+  select#FacState(name="FacState",required)
+    option(value="") &mdash;Please choose a state&mdash;
+    option CO
+    option SC
+    option WA
+    //- I don't feel like adding the other 47 states,
+    //- but of course one could
+  span(class="flag")
+  br
+  label(for="FacDept") City: 
+  input#FacDept(type="text",name="FacDept",required)
+  span(class="flag")
+  br
+  label(for="FacRank") Rank: 
+  select#FacRank(name="FacRank",required)
+    option(value="ASST") Assistant Professor
+    option(value="ASSOC") Associate Professor
+    option(value="PROF") Professor
+  span(class="flag")
+  br
+  label(for="FacSalary") Salary: $ 
+  input#FacSalary(type="number",name="FacSalary",min="0",step="1000",value="40000",required)
+  span(class="flag")
+  br
+  label(for="FacSupervisor") Supervisor: 
+  select#FacSupervisor(name="FacSupervisor",required)
+    option(value="") &mdash;Please choose a supervisor&mdash;
+    option(value=" ") No supervisor
+    each row in rows
+      option(value=`${row.FacSSN}`) `${row.FacFirstName} ${row.FacLastName}`
+  span(class="flag")
+  br
+  label(for="FacZip") Zip code: 
+  input#FacZip(type="text",name="FacZip",pattern!='[0-9]{5}-?[0-9]{4}?',required)
+  span(class="flag")
+  br
+
+  input(type="submit")
