@@ -97,7 +97,7 @@ block content
     option(value="") &mdash;Please choose a supervisor&mdash;
     option(value=" ") No supervisor
     each row in rows
-      option(value=`${row.FacSSN}`) `${row.FacFirstName} ${row.FacLastName}`
+      option(value=`${row.FacSSN}`) #{row.FacFirstName} #{row.FacLastName}
   span(class="flag")
   br
   label(for="FacZip") Zip code: 
