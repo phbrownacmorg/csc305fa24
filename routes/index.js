@@ -53,37 +53,81 @@ function clearReqAppLocals(req) {
  * Performs a query on the database, using form data to parameterize the query.
  */
 function parameterizedQuery(req, res, next) {
-  if (req.app.locals.formdata && req.app.locals.formdata.FacSSN) {
-    console.log('FacSSN: ' + req.app.locals.formdata.FacSSN);
-    // Normalize the SSN to have dashes
-    req.app.locals.FacSSN = SSN_with_dashes(req.app.locals.formdata.FacSSN);
-    // Set the version for the query *not* to have dashes, since that's what's in the database.
-    let querySSN = req.app.locals.formdata.FacSSN.replaceAll('-', '');
+  if (req.app.locals.formdata) {
+    if (req.app.locals.formdata.FacSSN) { // The input came from the parameterized-query form
+      console.log('FacSSN: ' + req.app.locals.formdata.FacSSN);
+      // Normalize the SSN to have dashes
+      req.app.locals.FacSSN = SSN_with_dashes(req.app.locals.formdata.FacSSN);
+      // Set the version for the query *not* to have dashes, since that's what's in the database.
+      let querySSN = req.app.locals.formdata.FacSSN.replaceAll('-', '');
 
-    // The query contains "?" where the parameters are to be inserted.  The
-    // second argument to db.all() is an array of parameter values to fill in
-    // where the query has a "?".  See 
-    // https://github.com/TryGhost/node-sqlite3/wiki/API#runsql--param---callback
-    // for more  details.
-    // This query could also be constructed as a complete string (with no "?" and
-    // querySSN already substituted in) in Javascript.  In that case, the second
-    // argument to db.all() would just be an empty array.
-    let paramQuery = "select * from Offering where FacSSN = ?"
-    req.app.locals.db.all(paramQuery, [querySSN], 
-                          (err, rows) => {
-      if (err) {
-        throw err;
-      }
-      req.app.locals.paramQuery = paramQuery;
-      req.app.locals.courses = rows; // Different name from the last time, to keep
-                                     // responses to different queries separate
+      // The query contains "?" where the parameters are to be inserted.  The
+      // second argument to db.all() is an array of parameter values to fill in
+      // where the query has a "?".  See 
+      // https://github.com/TryGhost/node-sqlite3/wiki/API#runsql--param---callback
+      // for more  details.
+      // This query could also be constructed as a complete string (with no "?" and
+      // querySSN already substituted in) in Javascript.  In that case, the second
+      // argument to db.all() would just be an empty array.
+      let paramQuery = "select * from Offering where FacSSN = ?"
+      req.app.locals.db.all(paramQuery, [querySSN], 
+                            (err, rows) => {
+        if (err) {
+          throw err;
+        }
+        req.app.locals.paramQuery = paramQuery;
+        req.app.locals.courses = rows; // Different name from the last time, to keep
+                                      // responses to different queries separate
+      });
       showIndex(req, res, next); 
-    });
+    }
+    else { // Not the parameterized-query form.  Try the insert query.
+      runInsertQuery(req, res, next);
+    }
   }
   else {
     showIndex(req, res, next);
   }
+}
 
+function runInsertQuery(req, res, next) {
+  // if (req.app.locals.formdata) {
+  //   if (req.app.locals.formdata.FacID) {
+  //     // Twiddle the values that need it
+  //     let insertQuery = 'insert into Faculty values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
+  //     let insertCallback = function (err) {
+  //       if (err) {
+  //         throw err;
+  //       }
+  //       req.app.locals.db.all(req.app.locals.query, [], (err, rows) => {
+  //         if (err) {
+  //           throw err;
+  //         }
+  //         req.app.locals.rows = rows;
+  //         showIndex(req, res, next);
+  //       });
+  //     };
+
+  //     req.app.locals.db.run(insertQuery, [req.app.locals.formdata.FacID.replaceAll('-', ''),
+  //                                         req.app.locals.formdata.FacFirstName,
+  //                                         req.app.locals.formdata.FacLastName,
+  //                                         req.app.locals.formdata.FacCity,
+  //                                         req.app.locals.formdata.FacState,
+  //                                         req.app.locals.formdata.FacDept,
+  //                                         req.app.locals.formdata.FacRank,
+  //                                         req.app.locals.formdata.FacSalary,
+  //                                         req.app.locals.formdata.FacSupervisor.replaceAll(' ', ''),
+  //                                         (new Date()).toISOString().substring(0,10),
+  //                                         req.app.locals.formdata.FacZip.replaceAll('-', '')],
+  //                           insertCallback);
+  //   }
+  //   else { // No insert query
+  //     showIndex(req, res, next);
+  //   }
+  // }
+  // else { // No formdata (should never happen)
+    showIndex(req, res, next);
+  // }
 }
 
 /*
