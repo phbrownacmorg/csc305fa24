@@ -32,9 +32,9 @@ block content
   if !FacSSN || FacSSN.length == 0
     p No faculty member selected
   else 
-    p Faculty ID is "#{FacSSN}"
-    if !courses
+    if !courses || courses.length == 0
       p Professor #{FacSSN} has no courses
+      p Query: #{paramQuery}
     else if courses.length > 0
       table
         caption Results of query: #{paramQuery}
