@@ -48,7 +48,76 @@ block content
               each val in Object.values(course)
                 td= val
 
-  h2 INSERT query 
+  h2 INSERT/UPDATE/DELETE queries
+
+  if !rows
+    p Nobody's teaching in this place.
+  else if rows.length > 0
+    table
+      caption Faculty
+      thead
+        tr
+          th ID
+          th First
+          th Last
+          th City
+          th State
+          th Dept 
+          th Rank 
+          th Salary 
+          th Supervisor 
+          th Hire date 
+          th Zip code
+          th Delete?
+          th
+      tbody
+        each row in rows
+          tr
+            form(id=`edit-${row.FacSSN}`,method="post",action="/")
+            td
+              input(type="hidden", name="FacSSN", value=`${row.FacSSN}`,
+                    form=`edit-${row.FacSSN}`)
+              | #{row.FacSSN}
+            td
+              input(type="text", name="FacFirstName", value=`${row.FacFirstName}`,
+                    required, form=`edit-${row.FacSSN}`)
+              span.flag
+            td
+              input(type="text", name="FacLastName", value=`${row.FacLastName}`,
+                    required, form=`edit-${row.FacSSN}`)
+              span.flag
+            td
+              input(type="text", name="FacCity", value=`${row.FacCity}`,
+                    required, form=`edit-${row.FacSSN}`)
+              span.flag
+            td
+              //- State
+            td
+              input(type="text", name="FacDept", value=`${row.FacDept}`,
+                    required, form=`edit-${row.FacSSN}`)
+              span.flag
+            td 
+              //- Rank
+            td
+              input(type="number", step="1000", min="0", name="FacSalary",
+                    value=`${row.FacSalary}`, required, form=`edit-${row.FacSSN}`)
+              span.flag
+            td
+              //- Supervisor
+            td 
+              //- Hire date
+            td
+              input(type="text", name="FacZip", value=`${row.FacZipCode}`,
+                    required, pattern!='[0-9]{5}(-?[0-9]{4})?', 
+                    form=`edit-${row.FacSSN}`)
+              span.flag
+            td
+              input(type="checkbox", name='delete', form=`edit-${row.FacSSN}`)
+            td
+              input(type="submit", form=`edit-${row.FacSSN}`)
+
+
+
   h3 New faculty member
   form#insert_form(method="post", action="/")
     label(for="FacID") ID number:

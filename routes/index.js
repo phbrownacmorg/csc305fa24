@@ -93,41 +93,41 @@ function runInsertQuery(req, res, next) {
   if (req.app.locals.formdata) {
     if (req.app.locals.formdata.FacID) {
       console.log('Inserting...');
-  //     // Parameter values on steroids here...
-  //     let insertQuery = 'insert into Faculty values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
-  //     let insertCallback = function (err) {
-  //       if (err) {
-  //         throw err;
-  //       }
-  //       req.app.locals.db.all(req.app.locals.query, [], (err, rows) => {
-  //         if (err) {
-  //           throw err;
-  //         }
-  //         req.app.locals.rows = rows;
-  //         showIndex(req, res, next);
-  //       });
-  //     };
+      // Parameter values on steroids here...
+      let insertQuery = 'insert into Faculty values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
+      let insertCallback = function (err) {
+        if (err) {
+          throw err;
+        }
+        req.app.locals.db.all(req.app.locals.query, [], (err, rows) => {
+          if (err) {
+            throw err;
+          }
+          req.app.locals.rows = rows;
+          showIndex(req, res, next);
+        });
+      };
 
-  //     req.app.locals.db.run(insertQuery, [req.app.locals.formdata.FacID.replaceAll('-', ''),
-  //                                         req.app.locals.formdata.FacFirstName,
-  //                                         req.app.locals.formdata.FacLastName,
-  //                                         req.app.locals.formdata.FacCity,
-  //                                         req.app.locals.formdata.FacState,
-  //                                         req.app.locals.formdata.FacDept,
-  //                                         req.app.locals.formdata.FacRank,
-  //                                         req.app.locals.formdata.FacSalary,
-  //                                         req.app.locals.formdata.FacSupervisor.replaceAll(' ', ''),
-  //                                         (new Date()).toISOString().substring(0,10),
-  //                                         req.app.locals.formdata.FacZip.replaceAll('-', '')],
-  //                           insertCallback);
+      req.app.locals.db.run(insertQuery, [req.app.locals.formdata.FacID.replaceAll('-', ''),
+                                          req.app.locals.formdata.FacFirstName,
+                                          req.app.locals.formdata.FacLastName,
+                                          req.app.locals.formdata.FacCity,
+                                          req.app.locals.formdata.FacState,
+                                          req.app.locals.formdata.FacDept,
+                                          req.app.locals.formdata.FacRank,
+                                          req.app.locals.formdata.FacSalary,
+                                          req.app.locals.formdata.FacSupervisor.replaceAll(' ', ''),
+                                          (new Date()).toISOString().substring(0,10),
+                                          req.app.locals.formdata.FacZip.replaceAll('-', '')],
+                            insertCallback);
     }
-  //   else { // No insert query
-  //     showIndex(req, res, next);
-  //   }
+    else { // No insert query
+      showIndex(req, res, next);
+    }
   }
-  // else { // No formdata (should never happen)
+  else { // No formdata (should never happen)
     showIndex(req, res, next);
-  // }
+  }
 }
 
 /*
