@@ -25,14 +25,7 @@ function topLevel(req, res, next) {
   
   if (req.app.locals.db) {
     console.log('Got the database');
-    req.app.locals.query = "select * from Faculty;";
-    req.app.locals.db.all(req.app.locals.query, [], (err, rows) => {
-      if (err) {
-        throw err;
-      }
-      req.app.locals.rows = rows;
-      parameterizedQuery(req, res, next); // Has to happen inside the handler
-    });
+    parameterizedQuery(req, res, next); // Has to happen inside the handler
   }
   else {
     showIndex(req, res, next);
@@ -77,7 +70,7 @@ function parameterizedQuery(req, res, next) {
         }
         req.app.locals.courses = rows; // Different name from the last time, to keep
                                       // responses to different queries separate
-        showIndex(req, res, next); // Has to happen inside the handler
+        queryFacTable(req, res, next); // Has to happen inside the handler
       });
     }
     else { // Not the parameterized-query form.  Try the insert query.
@@ -85,7 +78,7 @@ function parameterizedQuery(req, res, next) {
     }
   }
   else {
-    showIndex(req, res, next);
+    queryFacTable(req, res, next);
   }
 }
 
@@ -99,13 +92,7 @@ function runInsertQuery(req, res, next) {
         if (err) {
           throw err;
         }
-        req.app.locals.db.all(req.app.locals.query, [], (err, rows) => {
-          if (err) {
-            throw err;
-          }
-          req.app.locals.rows = rows;
-          showIndex(req, res, next);
-        });
+        queryFacTable(req, res, next);
       };
 
       req.app.locals.db.run(insertQuery, [req.app.locals.formdata.FacID.replaceAll('-', ''),
@@ -122,11 +109,11 @@ function runInsertQuery(req, res, next) {
                             insertCallback);
     }
     else { // No insert query
-      showIndex(req, res, next);
+      queryFacTable(req, res, next);
     }
   }
   else { // No formdata (should never happen)
-    showIndex(req, res, next);
+    queryFacTable(req, res, next);
   }
 }
 
@@ -144,6 +131,23 @@ function SSN_with_dashes(ssn) {
   return ssn;
 }
 
+
+function queryFacTable(req, res, next) {
+  if (req.app.locals.db) {
+    req.app.locals.query = "select * from Faculty;";
+    req.app.locals.db.all(req.app.locals.query, [], (err, rows) => {
+      if (err) {
+        throw err;
+      }
+      req.app.locals.rows = rows;
+      showIndex(req, res, next); // Has to happen inside the handler
+    });
+  }
+  else {
+    showIndex(req, res, next);
+  }
+
+}
 
 function showIndex(req, res, next) {
   res.render('index', { title: 'Another brick in the SQL',

@@ -80,41 +80,155 @@ block content
               | #{row.FacSSN}
             td
               input(type="text", name="FacFirstName", value=`${row.FacFirstName}`,
-                    required, form=`edit-${row.FacSSN}`)
+                    required, size="9", form=`edit-${row.FacSSN}`)
               span.flag
             td
               input(type="text", name="FacLastName", value=`${row.FacLastName}`,
-                    required, form=`edit-${row.FacSSN}`)
+                    required, size="7", form=`edit-${row.FacSSN}`)
               span.flag
             td
               input(type="text", name="FacCity", value=`${row.FacCity}`,
-                    required, form=`edit-${row.FacSSN}`)
+                    required, size="6", form=`edit-${row.FacSSN}`)
               span.flag
             td
               //- State
+              //- Obviously, the rest of the states could be filled in
+              - let states = ['AK', 'AR', 'CA', 'CO', 'NC', 'SC', 'WA'];
+              select(name="FacState", required, form=`edit-${row.FacSSN}`,
+                      style="width: 3.5em")
+                option(value="") &mdash;State&mdash;
+                each state in states
+                  if row.FacState == state
+                    option(selected) #{state}
+                  else
+                    option #{state}
+              span.flag
             td
               input(type="text", name="FacDept", value=`${row.FacDept}`,
-                    required, form=`edit-${row.FacSSN}`)
+                    required, size="3", form=`edit-${row.FacSSN}`)
               span.flag
             td 
               //- Rank
+              - let ranks = ['ASST', 'ASSC', 'PROF'];
+              - let ranknames = ['Assistant', 'Associate', 'Professor'];
+              select(name="FacRank", required, form=`edit-${row.FacSSN}`,
+                    style="width: 5em;")
+                each rank in ranks 
+                  if row.FacRank == rank
+                    option(selected) #{rank}
+                  else
+                    option #{rank}
+              span.flag
             td
+              label $
               input(type="number", step="1000", min="0", name="FacSalary",
-                    value=`${row.FacSalary}`, required, form=`edit-${row.FacSSN}`)
+                    value=`${row.FacSalary}`, required, form=`edit-${row.FacSSN}`,
+                    style="width: 4.5em;")
               span.flag
             td
               //- Supervisor
+              select(name="FacSupv", required, form=`edit-${row.FacSSN}`,
+                    style="width: 7.5em;")
+                option(value="") &mdash;Boss&mdash;
+                if row.FacSupervisor == ""
+                  option(selected, value=" ") None  
+                else
+                  option(selected, value=" ") None  
+
+                //- Note the different variable!
+                each supv in rows
+                  if supv.FacSSN == row.FacSupervisor 
+                    option(selected, value=`${supv.FacSSN}`) #{supv.FacLastName}
+                  else
+                    option(value=`${supv.FacSSN}`) #{supv.FacLastName}
+              span.flag
             td 
               //- Hire date
+              input(type="date", name="FacHireDate", value=`${row.FacHireDate}`,
+                    form=`edit-${row.FacSSN}`, required, style="width: 7.5em")
+              span.flag
             td
               input(type="text", name="FacZip", value=`${row.FacZipCode}`,
                     required, pattern!='[0-9]{5}(-?[0-9]{4})?', 
-                    form=`edit-${row.FacSSN}`)
+                    form=`edit-${row.FacSSN}`,size="7")
               span.flag
             td
               input(type="checkbox", name='delete', form=`edit-${row.FacSSN}`)
             td
               input(type="submit", form=`edit-${row.FacSSN}`)
+        //- Row for inserting a new person
+        tr
+          form(id=`edit-new`,method="post",action="/")
+          td
+            input(type="text", name="FacSSN", required, form=`edit-new`,
+                  style="width: 6em")
+            span.flag
+          td
+            input(type="text", name="FacFirstName",
+                  required, size="9", form=`edit-new`)
+            span.flag
+          td
+            input(type="text", name="FacLastName",
+                  required, size="7", form=`edit-new`)
+            span.flag
+          td
+            input(type="text", name="FacCity",
+                  required, size="6", form=`edit-new`)
+            span.flag
+          td
+            //- State
+            //- Obviously, the rest of the states could be filled in
+            - let states = ['AK', 'AR', 'CA', 'CO', 'NC', 'SC', 'WA'];
+            select(name="FacState", required, form=`edit-new`,
+                    style="width: 3.5em")
+              option(value="") &mdash;
+              each state in states
+                option #{state}
+            span.flag
+          td
+            input(type="text", name="FacDept",
+                  required, size="3", form=`edit-new`)
+            span.flag
+          td 
+            //- Rank
+            - let ranks = ['ASST', 'ASSC', 'PROF'];
+            - let ranknames = ['Assistant', 'Associate', 'Professor'];
+            select(name="FacRank", required, form=`edit-new`,
+                  style="width: 5em;")
+              each rank in ranks 
+                option #{rank}
+            span.flag
+          td
+            label $
+            input(type="number", step="1000", min="0", name="FacSalary",
+                  value="50000", required, form=`edit-new`,
+                  style="width: 4.5em;")
+            span.flag
+          td
+            //- Supervisor
+            select(name="FacSupv", required, form=`edit-new`,
+                  style="width: 7.5em;")
+              option(value="") &mdash;Boss&mdash;
+              option(selected, value=" ") None  
+
+              //- Note the different variable!
+              each supv in rows
+                option(value=`${supv.FacSSN}`) #{supv.FacLastName}
+            span.flag
+          td 
+            //- Hire date
+            input(type="date", name="FacHireDate", 
+                  value=`(new Date()).toISOString().substring(0,10)`,
+                  form=`edit-new`, required, style="width: 7.5em")
+            span.flag
+          td
+            input(type="text", name="FacZip",
+                  required, pattern!='[0-9]{5}(-?[0-9]{4})?', 
+                  form=`edit-new`,size="7")
+            span.flag
+          td
+          td
+            input(type="submit", form=`edit-new`)
 
 
 
