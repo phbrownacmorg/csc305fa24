@@ -25,7 +25,7 @@ function topLevel(req, res, next) {
   
   if (req.app.locals.db) {
     console.log('Got the database');
-    parameterizedQuery(req, res, next); // Has to happen inside the handler
+    runUpdateQuery(req, res, next); // Has to happen inside the handler
   }
   else {
     showIndex(req, res, next);
@@ -47,7 +47,7 @@ function clearReqAppLocals(req) {
  */
 function parameterizedQuery(req, res, next) {
   if (req.app.locals.formdata) {
-    if (req.app.locals.formdata.FacSSN) { // The input came from the parameterized-query form
+    if (req.app.locals.formdata.FacSSN  && !req.app.locals.operation) { // The input came from the parameterized-query form
       // Normalize the SSN to have dashes
       req.app.locals.FacSSN = SSN_with_dashes(req.app.locals.formdata.FacSSN);
       console.log('FacSSN: ' + req.app.locals.FacSSN);
@@ -73,7 +73,7 @@ function parameterizedQuery(req, res, next) {
         queryFacTable(req, res, next); // Has to happen inside the handler
       });
     }
-    else { // Not the parameterized-query form.  Try the insert query.
+    else { // Not the parameterized-query form.  Maybe the insert form?
       runInsertQuery(req, res, next);
     }
   }
@@ -81,6 +81,74 @@ function parameterizedQuery(req, res, next) {
     queryFacTable(req, res, next);
   }
 }
+
+function runUpdateQuery(req, res, next) {
+  if (req.app.locals.formdata) {
+    if (req.app.locals.formdata.operation) {
+      // Using the update/delete/insert form.  All three operations use the same callback.
+      // The callback has to be defined in runUpdateQuery, because it has to close over req, res, and next.
+      let updateCallback = function (err) { 
+        if (err) {
+          throw err;
+        }
+        queryFacTable(req, res, next);
+      }
+      // Are we using the update/delete part of the form?
+      if (req.app.locals.formdata.operation == 'update') {
+        // Are we deleting?
+        if (req.app.locals.formdata.delete) {
+          // Doing deletion
+          let deleteQuery = 'delete from Faculty where FacSSN = ?;';
+          req.app.locals.db.run(deleteQuery, 
+                                [req.app.locals.formdata.FacSSN.replaceAll('-', '')], 
+                                updateCallback);
+        }
+        else { // Not deleting, updating
+          // Just overwrite the whole thing.  Trying to compare and find the changes is too complex.
+          let updateQuery = "update Faculty set FacFirstName = ?, FacLastName = ?, "
+                            + "FacCity = ?, FacState = ?, FacDept = ?, FacRank = ?, "
+                            + "FacSalary = ?, FacSupervisor = ?, FacHireDate = ?, "
+                            + "FacZipCode = ? where FacSSN = ?;";
+          let args = [ req.app.locals.formdata.FacFirstName,
+                        req.app.locals.formdata.FacLastName,
+                        req.app.locals.formdata.FacCity,
+                        req.app.locals.formdata.FacState,
+                        req.app.locals.formdata.FacDept,
+                        req.app.locals.formdata.FacRank,
+                        req.app.locals.formdata.FacSalary,
+                        req.app.locals.formdata.FacSupervisor.replaceAll(' ', ''),
+                        req.app.locals.formdata.FacHireDate,
+                        req.app.locals.formdata.FacZip.replaceAll('-', ''),
+                        req.app.locals.formdata.FacSSN.replaceAll('-', '')];
+          console.log(updateQuery, args);
+          req.app.locals.db.run(updateQuery, args, updateCallback);
+        }
+      }
+      else if (req.app.locals.formdata.operation == 'insert') { // We're inserting
+        let insertQuery = 'insert into Faculty values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
+        let args = [req.app.locals.formdata.FacSSN.replaceAll('-', ''),
+                    req.app.locals.formdata.FacFirstName,
+                    req.app.locals.formdata.FacLastName,
+                    req.app.locals.formdata.FacCity,
+                    req.app.locals.formdata.FacState,
+                    req.app.locals.formdata.FacDept,
+                    req.app.locals.formdata.FacRank,
+                    req.app.locals.formdata.FacSalary,
+                    req.app.locals.formdata.FacSupervisor.replaceAll(' ', ''),
+                    req.app.locals.formdata.FacHireDate,
+                    req.app.locals.formdata.FacZip.replaceAll('-', '')];
+        req.app.locals.db.run(insertQuery, args, updateCallback);
+      }
+    } // end if req.app.locals.formdata.operation
+    else {
+      parameterizedQuery(req, res, next);
+    }
+  } // end if req.app.locals.formdata
+  else {
+    queryFacTable(req, res, next);
+  }
+}
+
 
 function runInsertQuery(req, res, next) {
   if (req.app.locals.formdata) {
@@ -156,7 +224,8 @@ function showIndex(req, res, next) {
                         FacSSN: req.app.locals.FacSSN,
                         paramQuery: req.app.locals.paramQuery,
                         courses: req.app.locals.courses,
-                        formdata: req.app.locals.formdata
+                        states: ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MI', 'MO', 'MN', 'MT', 'MS', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY'],
+                        formdata: req.app.locals.formdata,
   });
 }
 

@@ -1,24 +1,26 @@
 extends layout
 
 block content
+  - function SSN_with_dashes(ssn) { if (ssn.at(3) != '-') { ssn = ssn.slice(0, 3) + '-' + ssn.slice(3); } if (ssn.at(6) != '-') { ssn = ssn.slice(0, 6) + '-' + ssn.slice(6); } return ssn; }
+  - function zip_with_dashes(zip) { if (zip.length > 5 && zip.at(5) != '-') { zip = zip.slice(0,5) + '-' + zip.slice(5); } return zip; }
   h1= title
   p Welcome to #{title}
 
-  h2 Query
-  if !rows
-    p No result
-  else if rows.length > 0
-    table
-      caption Results of query: #{query}
-      thead
-        tr
-          each key in Object.keys(rows[0])
-            th= key
-      tbody 
-        each row in rows
-          tr
-            each val in Object.values(row)
-              td= val
+  //- h2 Query
+  //- if !rows
+  //-   p No result
+  //- else if rows.length > 0
+  //-   table
+  //-     caption Results of query: #{query}
+  //-     thead
+  //-       tr
+  //-         each key in Object.keys(rows[0])
+  //-           th= key
+  //-     tbody 
+  //-       each row in rows
+  //-         tr
+  //-           each val in Object.values(row)
+  //-             td= val
 
   h2 Parameterized query
   form#FacSSN_form(method="post", action="/")
@@ -48,7 +50,7 @@ block content
               each val in Object.values(course)
                 td= val
 
-  h2 INSERT/UPDATE/DELETE queries
+  h2 Faculty list and queries
 
   if !rows
     p Nobody's teaching in this place.
@@ -71,29 +73,31 @@ block content
           th Delete?
           th
       tbody
+
+        //- Existing faculty
         each row in rows
           tr
             form(id=`edit-${row.FacSSN}`,method="post",action="/")
+              input(type="hidden", name="operation", value="update")
             td
               input(type="hidden", name="FacSSN", value=`${row.FacSSN}`,
                     form=`edit-${row.FacSSN}`)
-              | #{row.FacSSN}
+              - let ssn = SSN_with_dashes(row.FacSSN);
+              | #{SSN_with_dashes(row.FacSSN)}
             td
               input(type="text", name="FacFirstName", value=`${row.FacFirstName}`,
-                    required, size="9", form=`edit-${row.FacSSN}`)
+                    required, size="10", form=`edit-${row.FacSSN}`)
               span.flag
             td
               input(type="text", name="FacLastName", value=`${row.FacLastName}`,
-                    required, size="7", form=`edit-${row.FacSSN}`)
+                    required, size="8", form=`edit-${row.FacSSN}`)
               span.flag
             td
               input(type="text", name="FacCity", value=`${row.FacCity}`,
-                    required, size="6", form=`edit-${row.FacSSN}`)
+                    required, size="8", form=`edit-${row.FacSSN}`)
               span.flag
             td
               //- State
-              //- Obviously, the rest of the states could be filled in
-              - let states = ['AK', 'AR', 'CA', 'CO', 'NC', 'SC', 'WA'];
               select(name="FacState", required, form=`edit-${row.FacSSN}`,
                       style="width: 3.5em")
                 option(value="") &mdash;State&mdash;
@@ -127,7 +131,7 @@ block content
               span.flag
             td
               //- Supervisor
-              select(name="FacSupv", required, form=`edit-${row.FacSSN}`,
+              select(name="FacSupervisor", required, form=`edit-${row.FacSSN}`,
                     style="width: 7.5em;")
                 option(value="") &mdash;Boss&mdash;
                 if row.FacSupervisor == ""
@@ -145,41 +149,42 @@ block content
             td 
               //- Hire date
               input(type="date", name="FacHireDate", value=`${row.FacHireDate}`,
-                    form=`edit-${row.FacSSN}`, required, style="width: 7.5em")
+                    form=`edit-${row.FacSSN}`, required, style="width: 7.7em")
               span.flag
             td
-              input(type="text", name="FacZip", value=`${row.FacZipCode}`,
+              input(type="text", name="FacZip", value=`${zip_with_dashes(row.FacZipCode)}`,
                     required, pattern!='[0-9]{5}(-?[0-9]{4})?', 
                     form=`edit-${row.FacSSN}`,size="7")
               span.flag
             td
               input(type="checkbox", name='delete', form=`edit-${row.FacSSN}`)
             td
-              input(type="submit", form=`edit-${row.FacSSN}`)
-        //- Row for inserting a new person
+              input(type="submit", value="Update", form=`edit-${row.FacSSN}`)
+        
+        //- Blank row for inserting a new person
         tr
-          form(id=`edit-new`,method="post",action="/")
+          form(id="edit-new",method="post",action="/")
+            input(type="hidden", name="operation", value="insert")
           td
-            input(type="text", name="FacSSN", required, form=`edit-new`,
+            input(type="text", name="FacSSN", required, form="edit-new",
                   style="width: 6em")
             span.flag
           td
             input(type="text", name="FacFirstName",
-                  required, size="9", form=`edit-new`)
+                  required, size="9", form="edit-new")
             span.flag
           td
             input(type="text", name="FacLastName",
-                  required, size="7", form=`edit-new`)
+                  required, size="7", form="edit-new")
             span.flag
           td
             input(type="text", name="FacCity",
-                  required, size="6", form=`edit-new`)
+                  required, size="6", form="edit-new")
             span.flag
           td
             //- State
             //- Obviously, the rest of the states could be filled in
-            - let states = ['AK', 'AR', 'CA', 'CO', 'NC', 'SC', 'WA'];
-            select(name="FacState", required, form=`edit-new`,
+            select(name="FacState", required, form="edit-new",
                     style="width: 3.5em")
               option(value="") &mdash;
               each state in states
@@ -187,13 +192,13 @@ block content
             span.flag
           td
             input(type="text", name="FacDept",
-                  required, size="3", form=`edit-new`)
+                  required, size="3", form="edit-new")
             span.flag
           td 
             //- Rank
             - let ranks = ['ASST', 'ASSC', 'PROF'];
             - let ranknames = ['Assistant', 'Associate', 'Professor'];
-            select(name="FacRank", required, form=`edit-new`,
+            select(name="FacRank", required, form="edit-new",
                   style="width: 5em;")
               each rank in ranks 
                 option #{rank}
@@ -201,15 +206,15 @@ block content
           td
             label $
             input(type="number", step="1000", min="0", name="FacSalary",
-                  value="50000", required, form=`edit-new`,
+                  value="50000", required, form="edit-new",
                   style="width: 4.5em;")
             span.flag
           td
             //- Supervisor
-            select(name="FacSupv", required, form=`edit-new`,
+            select(name="FacSupervisor", required, form="edit-new",
                   style="width: 7.5em;")
               option(value="") &mdash;Boss&mdash;
-              option(selected, value=" ") None  
+              option(value=" ") None  
 
               //- Note the different variable!
               each supv in rows
@@ -217,94 +222,93 @@ block content
             span.flag
           td 
             //- Hire date
+            - let today = (new Date()).toISOString().substring(0,10);
             input(type="date", name="FacHireDate", 
-                  value=`(new Date()).toISOString().substring(0,10)`,
-                  form=`edit-new`, required, style="width: 7.5em")
+                  value = `${today}`,
+                  form='edit-new', required, style="width: 7.7em")
             span.flag
           td
             input(type="text", name="FacZip",
                   required, pattern!='[0-9]{5}(-?[0-9]{4})?', 
-                  form=`edit-new`,size="7")
+                  form="edit-new",size="7")
             span.flag
           td
           td
-            input(type="submit", form=`edit-new`)
+            input(type="submit", value="Insert", form="edit-new")
 
 
 
-  h3 New faculty member
-  form#insert_form(method="post", action="/")
-    label(for="FacID") ID number:
-    input#FacID(type="text",name="FacID",pattern!='[0-9]{3}-?[0-9]{2}-?[0-9]{4}',required,value=`${formdata.FacID ? formdata.FacID : ""}`)  
-    span(class="flag")
-    br
-    label(for="FacFirstName") First Name:
-    input#FacFirstName(type="text",name="FacFirstName",required,value=`${formdata.FacFirstName ? formdata.FacFirstName : ""}`)
-    span(class="flag")
-    br
-    label(for="FacLastName") Last Name: 
-    input#FacLastName(type="text",name="FacLastName",required,value=`${formdata.FacLastName ? formdata.FacLastName : ""}`)
-    span(class="flag")
-    br
-    label(for="FacCity") City: 
-    input#FacCity(type="text",name="FacCity",required,value=`${formdata.FacCity ? formdata.FacCity : ""}`)
-    span(class="flag")
-    br
-    label(for="FacState") State: 
-    select#FacState(name="FacState",required)
-      option(value="") &mdash;Please choose a state&mdash;
-      each state in ['CO', 'SC', 'WA']
-        if formdata.FacState === state
-          option(selected) #{state}
-        else
-          option #{state}
-      //- I don't feel like adding the other 47 states,
-      //- but of course one could
-    span(class="flag")
-    br
-    label(for="FacDept") Department: 
-    input#FacDept(type="text",name="FacDept",required,
-                  value=`${formdata.FacDept ? formdata.FacDept : ""}`)
-    span(class="flag")
-    br
-    label(for="FacRank") Rank: 
-    select#FacRank(name="FacRank",required)
-      //- - const rankname = {ASST: 'Assistant Professor', ASSOC: 'Associate Professor', PROF, 'Professor'}
-      each pair in [['ASST', 'Assistant Professor'], ['ASSOC', 'Associate Professor'], ['PROF', 'Professor']]
-        if formdata.FacRank === pair[0]
-          option(value=`${pair[0]}`,selected) #{ pair[1] }
-        else
-          option(value=`${pair[0]}`) #{ pair[1] }
-        //- if formdata.FacRank === rank 
-        //-   option(value=rank, selected) #{ranks[rank]}
-        //- else
-        //-   option(value=rank) #{ranks[rank]}
-      //- option(value="ASST") Assistant Professor
-      //- option(value="ASSOC") Associate Professor
-      //- option(value="PROF") Professor
+  //- h3 New faculty member
+  //- form#insert_form(method="post", action="/")
+  //-   label(for="FacID") ID number:
+  //-   input#FacID(type="text",name="FacID",pattern!='[0-9]{3}-?[0-9]{2}-?[0-9]{4}',required,value=`${formdata.FacID ? formdata.FacID : ""}`)  
+  //-   span(class="flag")
+  //-   br
+  //-   label(for="FacFirstName") First Name:
+  //-   input#FacFirstName(type="text",name="FacFirstName",required,value=`${formdata.FacFirstName ? formdata.FacFirstName : ""}`)
+  //-   span(class="flag")
+  //-   br
+  //-   label(for="FacLastName") Last Name: 
+  //-   input#FacLastName(type="text",name="FacLastName",required,value=`${formdata.FacLastName ? formdata.FacLastName : ""}`)
+  //-   span(class="flag")
+  //-   br
+  //-   label(for="FacCity") City: 
+  //-   input#FacCity(type="text",name="FacCity",required,value=`${formdata.FacCity ? formdata.FacCity : ""}`)
+  //-   span(class="flag")
+  //-   br
+  //-   label(for="FacState") State: 
+  //-   select#FacState(name="FacState",required)
+  //-     option(value="") &mdash;Please choose a state&mdash;
+  //-     each state in states
+  //-       if formdata.FacState === state
+  //-         option(selected) #{state}
+  //-       else
+  //-         option #{state}
+  //-   span(class="flag")
+  //-   br
+  //-   label(for="FacDept") Department: 
+  //-   input#FacDept(type="text",name="FacDept",required,
+  //-                 value=`${formdata.FacDept ? formdata.FacDept : ""}`)
+  //-   span(class="flag")
+  //-   br
+  //-   label(for="FacRank") Rank: 
+  //-   select#FacRank(name="FacRank",required)
+  //-     //- - const rankname = {ASST: 'Assistant Professor', ASSOC: 'Associate Professor', PROF, 'Professor'}
+  //-     each pair in [['ASST', 'Assistant Professor'], ['ASSOC', 'Associate Professor'], ['PROF', 'Professor']]
+  //-       if formdata.FacRank === pair[0]
+  //-         option(value=`${pair[0]}`,selected) #{ pair[1] }
+  //-       else
+  //-         option(value=`${pair[0]}`) #{ pair[1] }
+  //-       //- if formdata.FacRank === rank 
+  //-       //-   option(value=rank, selected) #{ranks[rank]}
+  //-       //- else
+  //-       //-   option(value=rank) #{ranks[rank]}
+  //-     //- option(value="ASST") Assistant Professor
+  //-     //- option(value="ASSOC") Associate Professor
+  //-     //- option(value="PROF") Professor
 
-    span(class="flag")
-    br
-    label(for="FacSalary") Salary: $ 
-    input#FacSalary(type="number",name="FacSalary",min="0",step="1000",value=`${formdata.FacSalary ? formdata.FacSalary : 40000}`,required)
-    span(class="flag")
-    br
-    label(for="FacSupervisor") Supervisor: 
-    select#FacSupervisor(name="FacSupervisor",required)
-      option(value="") &mdash;Please choose a supervisor&mdash;
-      if formdata.FacSupervisor === " "
-        option(value=" ",selected) No supervisor
-      else
-        option(value=" ") No supervisor
-      each row in rows
-        if formdata.FacSupervisor === row.FacSSN
-          option(value=`${row.FacSSN}`,selected) #{row.FacFirstName} #{row.FacLastName}
-        else
-          option(value=`${row.FacSSN}`) #{row.FacFirstName} #{row.FacLastName}
-    span(class="flag")
-    br
-    label(for="FacZip") Zip code: 
-    input#FacZip(type="text",name="FacZip",pattern!='[0-9]{5}(-?[0-9]{4})?',required,value=`${formdata.FacZip ? formdata.FacZip : ""}`)
-    span(class="flag")
-    br
-    input(type="submit")
+  //-   span(class="flag")
+  //-   br
+  //-   label(for="FacSalary") Salary: $ 
+  //-   input#FacSalary(type="number",name="FacSalary",min="0",step="1000",value=`${formdata.FacSalary ? formdata.FacSalary : 40000}`,required)
+  //-   span(class="flag")
+  //-   br
+  //-   label(for="FacSupervisor") Supervisor: 
+  //-   select#FacSupervisor(name="FacSupervisor",required)
+  //-     option(value="") &mdash;Please choose a supervisor&mdash;
+  //-     if formdata.FacSupervisor === " "
+  //-       option(value=" ",selected) No supervisor
+  //-     else
+  //-       option(value=" ") No supervisor
+  //-     each row in rows
+  //-       if formdata.FacSupervisor === row.FacSSN
+  //-         option(value=`${row.FacSSN}`,selected) #{row.FacFirstName} #{row.FacLastName}
+  //-       else
+  //-         option(value=`${row.FacSSN}`) #{row.FacFirstName} #{row.FacLastName}
+  //-   span(class="flag")
+  //-   br
+  //-   label(for="FacZip") Zip code: 
+  //-   input#FacZip(type="text",name="FacZip",pattern!='[0-9]{5}(-?[0-9]{4})?',required,value=`${formdata.FacZip ? formdata.FacZip : ""}`)
+  //-   span(class="flag")
+  //-   br
+  //-   input(type="submit")

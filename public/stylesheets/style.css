@@ -7,6 +7,18 @@ a {
   color: #00B7FF;
 }
 
+select {
+  background-color: white;
+}
+
+input:invalid, select:invalid {
+  border: thin solid firebrick;
+}
+
+input:valid, select:valid {
+  border: thin solid green;
+}
+
 /* Indicate required elements */
 .flag { color: firebrick; }
 
